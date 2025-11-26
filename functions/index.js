@@ -45,4 +45,4 @@ export {
 // 4: cd ..
 //5:  firebase deploy --only functions
 
-// firebase deploy --only functions:realtimeLocationGuide , realtimeLocationGuide
+// firebase deploy --only functions:realtimeSession , realtimeLocationGuide, realtimeSession

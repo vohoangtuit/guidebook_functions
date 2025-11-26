@@ -91,22 +91,21 @@ export const realtimeToBigQuery = onValueCreated(
 export const realtimeSession = onValueCreated(
     "/Database/Sessions/{date}/{userId}/{pushId}",
     async (event) => {
-        const row = {
-            eventId: event.id,
-            key: event.data.key,
-            ...event.data.val()
-        };
+
+        const {pushId} = event.params;
+
+        const data = event.data.val();
 
         try {
             await bigquery
                 .dataset(datasetId)
                 .table("sessions")
-                .insert([row], {
-                    insertId: String(row.key),
+                .insert([{key:pushId,...data}], {
+                    insertId: pushId,
                     skipInvalidRows: false,
                     ignoreUnknownValues: false,
                 });
-            console.log("✅ Inserted into BigQuery:", row.key);
+           // console.log("✅ Inserted into BigQuery:", row.key);
         } catch (err) {
             // console.error("❌ BigQuery Error:", err);
             if (err.name === "PartialFailureError") {
