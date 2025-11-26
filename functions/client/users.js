@@ -76,7 +76,7 @@ export const getSessions = onRequest({ region: "us-central1" }, async (req, res)
           fullName,
           duration,
           yearMonthDay,
-          yearMonthDayHHMMSS,
+          yearMonthDayHHMM,
           deviceType
         FROM \`${appId}.${dataset}.${table_sessions}\`
         WHERE username = @username
@@ -145,7 +145,7 @@ export const getSignInAccount = onRequest({ region: "us-central1" }, async (req,
           yearMonthDayHHMM
       FROM \`${appId}.${dataset}.${table_sign_in}\`
       WHERE PARSE_DATE('%Y-%m-%d', yearMonthDay) BETWEEN "${startDate}" AND "${endDate}"
-      ORDER BY yearMonthDay DESC
+      ORDER BY yearMonthDayHHMM DESC
       LIMIT ${limit}
       OFFSET ${offset}
     `;
