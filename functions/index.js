@@ -1,6 +1,5 @@
 
 import {
-    insertToBigQuery,
     realtimeToBigQuery,
     realtimeSession,
     realtimeLocationGuide,
@@ -9,7 +8,6 @@ import {
 
 // Xuất ra tất cả các hàm Cloud Functions để deploy
 export {
-    insertToBigQuery,
     realtimeToBigQuery,
     realtimeSession,
     realtimeLocationGuide,
@@ -45,4 +43,4 @@ export {
 // 4: cd ..
 //5:  firebase deploy --only functions
 
-// firebase deploy --only functions:realtimeSession , realtimeLocationGuide, realtimeSession
+// firebase deploy --only functions:realtimeToBigQuery : realtimeLocationGuide, realtimeSession,realtimeToBigQuery
