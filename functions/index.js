@@ -3,6 +3,7 @@ import {
     realtimeToBigQuery,
     realtimeSession,
     realtimeLocationGuide,
+    realtimeDuplicate,
 
 } from "./realtimeFunctions.js";
 
@@ -11,6 +12,7 @@ export {
     realtimeToBigQuery,
     realtimeSession,
     realtimeLocationGuide,
+    realtimeDuplicate,
 };
 
 //--------CLIENT API----
@@ -43,8 +45,8 @@ export {
 // 4: cd ..
 //5:  firebase deploy --only functions
 
-// firebase deploy --only functions:realtimeLocationGuide ,realtimeLocationGuide,realtimeSession,realtimeToBigQuery
+// firebase deploy --only functions:realtimeDuplicate :,realtimeLocationGuide,realtimeSession,realtimeToBigQuery,realtimeDuplicate
 
-// firebase functions:delete realtimeSession
+// firebase functions:delete realtimeToBigQuery
 
-// firebase deploy --only functions:realtimeLocationGuide,functions:realtimeSession,functions:realtimeToBigQuery
+// firebase deploy --only functions:realtimeLocationGuide,functions:realtimeSession,functions:realtimeToBigQuery,functions:realtimeDuplicate

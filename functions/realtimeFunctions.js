@@ -10,7 +10,38 @@ setGlobalOptions({region: "us-central1", timeoutSeconds: 300});
 
 const datasetId = "tracking";
 //const fieldKey = "key";
+async function insertRow(tableName, payload, insertId) {
+    const table = bigquery.dataset(datasetId).table(tableName);
 
+    const id = String(insertId || "");
+    if (!id) console.warn("insertRow: insertId is falsy", { insertId });
+
+    const rows = [
+        {
+            insertId: id,
+            json: payload,
+        },
+    ];
+
+    // debug log: cho thấy chính xác gì sẽ gửi
+    console.debug("insertRow: rows:", JSON.stringify(rows));
+
+    try {
+        // raw:true rất quan trọng để client gửi đúng định dạng insertAll (insertId + json)
+        await table.insert(rows, { raw: true });
+        console.log("Inserted", { tableName, insertId: id });
+    } catch (err) {
+        if (err.name === "PartialFailureError") {
+            err.errors?.forEach((e) => {
+                console.error("BigQuery partial error:", e.errors);
+                console.error("Row that failed:", e.row);
+            });
+        } else {
+            console.error("BigQuery insert error:", err);
+        }
+        throw err;
+    }
+}
 // Path lưu giống nhau nên gôm chung
 export const realtimeToBigQuery = onValueCreated(
     "/Database/{tableName}/{userid}/{date}/{pushId}",
@@ -18,32 +49,25 @@ export const realtimeToBigQuery = onValueCreated(
 
         const {pushId,tableName} = event.params;
         const data = event.data.val();
-       // if (!data.key) return;
 
         const bqTable = tableNameMap[tableName];
+
         // todo duplicate insert, recheck
-        // const exists = await checkKeyExists(datasetId, bqTable, fieldKey, pushId);
-        // if (exists) {
-        //     console.log("⛔",bqTable," -  Skip duplicate insert:", pushId);
-        //     return;
-        // }
+
         const payload = {
             key: pushId,  // luôn ép = pushId, tránh xung đột
             ...data,
         };
-        try {
-            await bigquery.dataset(datasetId).table(bqTable).insert(payload,{
-                insertId: pushId,
-            });
+        // debug: in giá trị insertId và payload trước khi insert
+        console.debug(": inserting", { bqTable, pushId, payload });
 
+        try {
+            // dùng pushId làm insertId để đảm bảo idempotency
+            await insertRow(bqTable, payload, pushId);
         } catch (err) {
-           // console.error("❌ Failed insert:", err);
-            if (err.name === "PartialFailureError") {
-                err.errors?.forEach((e) => {
-                    console.error("➡️ BigQuery error:", e.errors);
-                    console.error("➡️ Row:", e.row);
-                });
-            }
+            console.error("❌ Failed insert:", err);
+            // tuỳ xử lý: nếu bạn không muốn function retry, không rethrow
+            // nếu rethrow -> function có thể retry khiến duplicate nếu insertId không cố định
         }
     }
 );
@@ -55,33 +79,21 @@ export const realtimeSession = onValueCreated(
         const data = event.data.val();
 
         const tableName = "sessions";
-        // todo duplicate insert, recheck
-        //if (!data.key) return;
-        // const exists = await checkKeyExists(datasetId, tableName, fieldKey, pushId);
-        // if (exists) {
-        //     console.log("⛔ Sessions Skip duplicate insert:", pushId);
-        //     return;
-        // }
+
         const payload = {
             key: pushId,  // luôn ép = pushId, tránh xung đột
             ...data,
         };
+        // debug: in giá trị insertId và payload trước khi insert
+        console.debug(": inserting", { tableName, pushId, payload });
+
         try {
-            await bigquery
-                .dataset(datasetId)
-                .table(tableName)
-                .insert(payload,{
-                    insertId: pushId,   // chống insert 2 lần
-                });
-            console.log("✅ Inserted:", pushId);
+            // dùng pushId làm insertId để đảm bảo idempotency
+            await insertRow(tableName, payload, pushId);
         } catch (err) {
-            if (err.name === "PartialFailureError") {
-                console.error("BIGQUERY PARTIAL FAILURE:", JSON.stringify(err, null, 2));
-                // err.errors?.forEach((e) => {
-                //     console.error("➡️ BigQuery error:", e.errors);
-                //     console.error("➡️ Row:", e.row);
-                // });
-            }
+             console.error("❌ Failed insert:", err);
+            // tuỳ xử lý: nếu bạn không muốn function retry, không rethrow
+            // nếu rethrow -> function có thể retry khiến duplicate nếu insertId không cố định
         }
     }
 );
@@ -94,34 +106,48 @@ export const realtimeLocationGuide = onValueCreated(
         const tableName ="location_guide";
         const data = event.data.val();
 
-        // todo duplicate insert, recheck
-
-        // const exists = await checkKeyExists(datasetId, tableName, fieldKey, pushId);
-        // if (exists) {
-        //     console.log("⛔ LocationGuide Skip duplicate insert:", pushId);
-        //     return;
-        // }
         const payload = {
             key: pushId,
             ...data,
         };
+        // debug: in giá trị insertId và payload trước khi insert
+        console.debug(": inserting", { tableName, pushId, payload });
+
         try {
-            await bigquery
-                .dataset(datasetId)
-                .table(tableName)
-                .insert(payload,{
-                    insertId: pushId,   // chống insert 2 lần
-                })
-              //console.log("✅ Inserted into BigQuery:", pushId);
+            // dùng pushId làm insertId để đảm bảo idempotency
+            await insertRow(tableName, payload, pushId);
         } catch (err) {
-            if (err.name === "PartialFailureError") {
-                err.errors?.forEach((e) => {
-                    console.error("➡️ BigQuery error:", e.errors);
-                    console.error("➡️ Row:", e.row);
-                });
-            }
+            console.error("❌ Failed insert:", err);
+            // tuỳ xử lý: nếu bạn không muốn function retry, không rethrow
+            // nếu rethrow -> function có thể retry khiến duplicate nếu insertId không cố định
         }
     }
 );
 
 
+export const realtimeDuplicate = onValueCreated(
+    "/Database/testDuplicate/{userId}/{date}/{pushId}",
+    async (event) => {
+
+        const {pushId} = event.params;
+        const tableName ="test_duplicate";
+        const data = event.data.val();
+
+
+        const payload = {
+            key: pushId,
+            ...data,
+        };
+        // debug: in giá trị insertId và payload trước khi insert
+        console.debug(": inserting", { tableName, pushId, payload });
+
+        try {
+            // dùng pushId làm insertId để đảm bảo idempotency
+            await insertRow(tableName, payload, pushId);
+        } catch (err) {
+            console.error("❌ Failed insert:", err);
+            // tuỳ xử lý: nếu bạn không muốn function retry, không rethrow
+            // nếu rethrow -> function có thể retry khiến duplicate nếu insertId không cố định
+        }
+    }
+);
