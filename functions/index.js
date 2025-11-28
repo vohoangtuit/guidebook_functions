@@ -43,4 +43,8 @@ export {
 // 4: cd ..
 //5:  firebase deploy --only functions
 
-// firebase deploy --only functions:realtimeToBigQuery : realtimeLocationGuide, realtimeSession,realtimeToBigQuery
+// firebase deploy --only functions:realtimeLocationGuide ,realtimeLocationGuide,realtimeSession,realtimeToBigQuery
+
+// firebase functions:delete realtimeSession
+
+// firebase deploy --only functions:realtimeLocationGuide,functions:realtimeSession,functions:realtimeToBigQuery
