@@ -36,7 +36,7 @@ export {
 //     "page":1
 // }
 
-// TRUNCATE TABLE `project_id.dataset.table_name`; // xóa data in table
+// TRUNCATE TABLE `guidebook-585c9.tracking.sessions`; // xóa data in table
 
 
 //1: cd functions
@@ -45,7 +45,7 @@ export {
 // 4: cd ..
 //5:  firebase deploy --only functions
 
-// firebase deploy --only functions:realtimeDuplicate :,realtimeLocationGuide,realtimeSession,realtimeToBigQuery,realtimeDuplicate
+// firebase deploy --only functions:realtimeToBigQuery :,realtimeLocationGuide,realtimeSession,realtimeToBigQuery,realtimeDuplicate
 
 // firebase functions:delete realtimeToBigQuery
 
