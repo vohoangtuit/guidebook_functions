@@ -5,7 +5,8 @@
       "ignore": [
         "node_modules"
       ],
-      "source": "functions"
+      "source": "functions",
+      "runtime": "nodejs20"
     }
   ]
 }
